@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, Text, Float, Date
-from app.database import Base
+from backend.database import Base
+from backend.models.base_model import TimestampMixin
 
-class Appraisal(Base):
+class Appraisal(Base,TimestampMixin):
+    
     __tablename__ = "appraisals"
 
     id = Column(Integer, primary_key=True, index=True)

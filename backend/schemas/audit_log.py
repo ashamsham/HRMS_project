@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class AuditLogCreate(BaseModel):
 
@@ -9,3 +10,5 @@ class AuditLogCreate(BaseModel):
     module: str
 
     status: str
+
+    details: Optional[str] = None

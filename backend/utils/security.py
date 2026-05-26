@@ -1,45 +1,58 @@
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from fastapi import HTTPException, status
-
+from fastapi import HTTPException
 
 pwd_context = CryptContext(
-    schemes=["bcrypt"], 
-    deprecated="auto")
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
+
+SECRET_KEY = "supersecretkey"
+ALGORITHM = "HS256"
 
 
-SECRET_KEY="supersecretkey" 
+def hash_password(password: str):
 
-ALGORITHM="HS256"
+    password = password[:72]
 
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-
-
-def hash_password(password):
     return pwd_context.hash(password)
 
 
-def verify_password(plain, hashed):
-    return pwd_context.verify(plain, hashed)
+def verify_password(
+    plain_password: str,
+    hashed_password: str
+):
+
+    plain_password = plain_password[:72]
+
+    return pwd_context.verify(
+        plain_password,
+        hashed_password
+    )
+
 
 def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    to_encode.update({"exp": expire})
 
-    return jwt.encode(
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(hours=1)
+
+    to_encode.update({
+        "exp": expire
+    })
+
+    encoded_jwt = jwt.encode(
         to_encode,
-        SECRET_KEY, 
+        SECRET_KEY,
         algorithm=ALGORITHM
     )
 
+    return encoded_jwt
+
+
 def verify_token(token: str):
-    
+
     try:
 
         payload = jwt.decode(
@@ -54,5 +67,5 @@ def verify_token(token: str):
 
         raise HTTPException(
             status_code=401,
-            detail="Invalid or expired token"
+            detail="Invalid token"
         )

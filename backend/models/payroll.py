@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, Date
-from app.database import Base
+from backend.database import Base
+from backend.models.base_model import TimestampMixin
 
-class Payroll(Base):
+class Payroll(Base,TimestampMixin):
     __tablename__ = "payrolls"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -21,5 +22,7 @@ class Payroll(Base):
     pf = Column(Float, default=0)
 
     net_salary = Column(Float, nullable=False)
+
+    status = Column(String(20), default="Pending")
 
     generated_date = Column(Date)

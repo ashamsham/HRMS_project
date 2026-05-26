@@ -1,9 +1,10 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
 
-from app.database import Base
+from backend.database import Base
+from backend.models.base_model import TimestampMixin
 
-class AuditLog(Base):
+class AuditLog(Base,TimestampMixin):
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, index=True)

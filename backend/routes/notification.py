@@ -1,21 +1,27 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal
+from backend.database import SessionLocal
 
-from app.services.notification_service import (
-
-    get_employee_notifications,
-
-    send_holiday_notification,
-
-    emergency_leave_alert,
-
-    monthly_leave_limit_check
+from backend.dependencies import (
+    get_current_user
 )
-
+from backend.services.notification_service import (
+    get_employee_notifications,
+    get_notifications_for_user,
+    create_notification,
+    emergency_leave_alert,
+    monthly_leave_limit_check,
+    mark_notification_read,
+    update_notification,
+    delete_notification,
+)
+from backend.schemas.notification import (
+    NotificationCreate,
+    NotificationCreateByEmployee,
+    NotificationUpdate,
+)
 router = APIRouter(
-    prefix="/notification",
     tags=["Notification"]
 )
 
@@ -31,34 +37,81 @@ def get_db():
         db.close()
 
 
-# Employee Notifications
-@router.get("/{employee_id}")
-def employee_notifications(
-    employee_id: str,
-    db: Session = Depends(get_db)
-):
 
-    return get_employee_notifications(
+
+# All Notifications for current user or full roles
+@router.get("/all")
+def all_notifications(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    return get_notifications_for_user(db, current_user)
+
+
+@router.get("/my-notifications")
+def my_notifications(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    return get_notifications_for_user(db, current_user)
+
+
+@router.post("/create")
+def create_notification_route(
+    notification: NotificationCreate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    return create_notification(
         db,
-        employee_id
+        notification.user,
+        notification.title,
+        notification.message
     )
 
 
-# Holiday Notification
-@router.post("/holiday")
-def holiday_notification(
+@router.post("/employee/{employee_id}")
+def send_employee_notification(
     employee_id: str,
-    holiday_name: str,
-    holiday_date: str,
-    db: Session = Depends(get_db)
+    notification: NotificationCreateByEmployee,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
-
-    return send_holiday_notification(
+    return create_notification(
         db,
         employee_id,
-        holiday_name,
-        holiday_date
+        notification.title,
+        notification.message
     )
+
+
+# Mark notification as read
+@router.put("/mark-read/{notification_id}")
+def mark_notification(
+    notification_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    return mark_notification_read(db, notification_id, current_user)
+
+
+@router.put("/update/{notification_id}")
+def update_notification_route(
+    notification_id: int,
+    notification: NotificationUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    return update_notification(db, notification_id, notification)
+
+
+@router.delete("/delete/{notification_id}")
+def delete_notification_route(
+    notification_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    return delete_notification(db, notification_id)
 
 
 # Emergency Leave Notification
@@ -84,6 +137,18 @@ def leave_limit_alert(
 ):
 
     return monthly_leave_limit_check(
+        db,
+        employee_id
+    )
+
+
+# Employee Notifications
+@router.get("/{employee_id}")
+def employee_notifications(
+    employee_id: str,
+    db: Session = Depends(get_db)
+):
+    return get_employee_notifications(
         db,
         employee_id
     )

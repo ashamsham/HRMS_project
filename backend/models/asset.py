@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, Date, Text
-from app.database import Base
+from backend.database import Base
 
-class Asset(Base):
+from backend.models.base_model import TimestampMixin
+
+class Asset(Base,TimestampMixin):
     __tablename__ = "assets"
 
     id = Column(Integer, primary_key=True, index=True)

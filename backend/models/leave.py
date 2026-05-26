@@ -1,19 +1,24 @@
 from sqlalchemy import Column, Integer, String, Date
-from app.database import Base
+from backend.database import Base
+
 
 class Leave(Base):
+
     __tablename__ = "leaves"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    employee_id = Column(String(20), nullable=False)
+    employee_name = Column(String(100), nullable=False)
 
-    leave_type = Column(String(50), nullable=False)
+    employee_id = Column(String(50))
 
-    start_date = Column(Date, nullable=False)
+    leave_type = Column(String(50))
 
-    end_date = Column(Date, nullable=False)
+    start_date = Column(Date)
 
-    reason = Column(String(255))
+    end_date = Column(Date)
 
-    status = Column(String(50), default="Pending")
+    reason = Column(String(500))
+
+    status = Column(String(20), default="Pending")
+    

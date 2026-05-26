@@ -1,23 +1,16 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal
+from backend.database import SessionLocal
+from backend.dependencies import role_required
 
-from app.services.dashboard_service import (
-    get_dashboard_stats,
-    department_headcount,
-    leave_trends,
-    attendance_summary
+from backend.services.dashboard_service import (
+    dashboard_data
 )
 
-# Create Router
-router = APIRouter(
-    prefix="/dashboard",
-    tags=["Dashboard"]
-)
+router = APIRouter()
 
 
-# Database Dependency
 def get_db():
 
     db = SessionLocal()
@@ -29,37 +22,15 @@ def get_db():
         db.close()
 
 
-# Dashboard Statistics
-@router.get("/stats")
-def dashboard_stats(
-    db: Session = Depends(get_db)
+# DASHBOARD
+@router.get("/")
+def dashboard(
+
+    db: Session = Depends(get_db),
+
+    current_user=Depends(
+        role_required(["Admin", "HR"])
+    )
 ):
 
-    return get_dashboard_stats(db)
-
-
-# Department Employee Count
-@router.get("/departments")
-def department_report(
-    db: Session = Depends(get_db)
-):
-
-    return department_headcount(db)
-
-
-# Leave Reports
-@router.get("/leave-trends")
-def leave_report(
-    db: Session = Depends(get_db)
-):
-
-    return leave_trends(db)
-
-
-# Attendance Reports
-@router.get("/attendance-summary")
-def attendance_report(
-    db: Session = Depends(get_db)
-):
-
-    return attendance_summary(db)
+    return dashboard_data(db)

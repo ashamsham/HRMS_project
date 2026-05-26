@@ -1,5 +1,6 @@
-from app.models.employee import Employee
-from app.utils.employee_id_generator import generate_employee_id
+from backend.models.employee import Employee
+from backend.models.attendance import Attendance
+from backend.utils.employee_id_generator import generate_employee_id
 
 def create_employee(db, employee_data):
 
@@ -11,8 +12,7 @@ def create_employee(db, employee_data):
         joining_date=employee_data.joining_date,
         contact_number=employee_data.contact_number,
         email=employee_data.email,
-         reporting_manager=employee_data.reporting_manager
-        
+        reporting_manager=employee_data.reporting_manager
     )
 
     db.add(new_employee)
@@ -21,9 +21,6 @@ def create_employee(db, employee_data):
 
     return new_employee
 
-
-def get_all_employees(db):
-    return db.query(Employee).all()
 
 def update_employee(db, employee_id, employee_data):
     
@@ -45,6 +42,8 @@ def update_employee(db, employee_id, employee_data):
     return employee
 
 
+def get_all_employees(db):
+    return db.query(Employee).all()
 
 
 def delete_employee(db, employee_id):
@@ -54,6 +53,10 @@ def delete_employee(db, employee_id):
 
     if not employee:
         return {"error": "Employee not found"}
+
+    db.query(Attendance).filter(
+        Attendance.employee_id == employee.id
+    ).delete()
 
     db.delete(employee)
     db.commit()
